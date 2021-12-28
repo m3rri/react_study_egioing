@@ -8,7 +8,7 @@
   * <a href="#con2-2">prop</a>
   * <a href="#con2-3">state</a>
   * <a href="#con2-4">key</a>
-* <a href="#con3">3. 이벤트</a>
+* <a href="#con3">3. 이벤트 및 CRUD 구현</a>
 ***
 ### <div id="con1">1. 개발환경</div>
 * Create React App 설치하여 사용하였음
@@ -205,5 +205,102 @@ class App extends Component {
   * React가 어떤 항목`:형제 node의 관계에 있는 동일한 element`을 변경|추가|삭제할 때 그들을 식별하기 위해서 사용함
   * 직접적으로 HTMLelement에 어떤 id나 property를 주지는 않는다.  
   react code 작성할 때 `key={해당 노드의 식별할 수 있는 id값}` 을 추가해줘야 react 에러가 발생하지 않음
+
 ***
-### <div id="con3">3. 이벤트</div>
+### <div id="con3">3. 이벤트 및 CRUD 구현</div>
+[App.js full source↗](https://github.com/m3rri/react_study_egioing/blob/master/src/App.js "GitHub source")
+```javascript
+//App.js concentrate
+/* ~ import ~ */
+class App extends Component {
+  constructor(props){
+    super(props);
+    this.state = {
+      mode: 'welcome',
+      selected_content_id: 1,
+      subject: {title: 'WEB', sub: 'world wide web!'},
+      welcome: {title: 'welcome', desc:'Hello React!'},
+      contents: []
+    }
+  }
+
+  getReadContent(){}
+
+  getContent(){
+    var _title, _desc, _article = null;
+
+    if(this.state.mode === 'welcome'){
+      _title = this.state.welcome.title;
+      _desc = this.state.welcome.desc;
+      _article = <ReadContent title={_title} desc={_desc} />;
+    }else if(this.state.mode === 'read'){
+      var _content = this.getReadContent();
+
+      _article = <ReadContent title={_content._title} desc={_content._desc} />;
+    }else if(this.state.mode === 'create'){
+      _article = <CreateContent onSubmit={function(_title, _desc){
+        var _contents = Array.from(this.state.contents);
+        var maxId = /* ~ calculate max id number ~ */
+        this.setState({
+          contents: _contents.concat({id: maxId, title: _title, desc: _desc}),
+          mode: 'read',
+          selected_content_id: maxId
+        });
+      }.bind(this)}/>
+    }else if(this.state.mode === 'update'){
+      var _content = this.getReadContent();
+      _article = <UpdateContent
+                    data={_content}
+                    onSubmit={function(_id, _title, _desc){
+                    var _contents = Array.from(this.state.contents);
+                    // ~ set new _contents logic ~                        
+                    this.setState({contents: _contents, mode: 'read'});
+                    }.bind(this)}
+                  />
+    }
+    return _article;
+  }
+
+  render(){
+    return (
+      <div className="App">
+        <Subject
+          title={this.state.subject.title}
+          sub  ={this.state.subject.sub}
+          onChangePage={function(){
+            this.setState({mode: 'welcome'});
+          }.bind(this)}
+        />
+
+        <TOC data={this.state.contents} onChangePage={function(id){
+          this.setState({
+            mode: 'read',
+            selected_content_id: id
+          });
+        }.bind(this)}/>
+
+        <Control onChangeMode={function(mode){
+          if(mode==='delete'){
+            if(window.confirm('Do you want to delete item?')){
+              var _content = Array.from(this.state.contents);
+              // ~ _content splice logic ~
+              this.setState({
+                  mode: 'welcome',
+                  contents: _content
+              });
+              alert('deleted!');
+            }
+          }else{
+            this.setState({
+              mode: mode
+            });
+          }
+        }.bind(this)}/>
+        
+        {this.getContent()}
+      </div>
+    );
+  }
+}
+export default App;
+```
