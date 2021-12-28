@@ -22,9 +22,18 @@ class UpdateContent extends Component{
           <form action="/create_process" method="post"
             onSubmit={function(e){
               e.preventDefault();
-              this.props.onSubmit(e.target.title.value, e.target.desc.value);
+              this.props.onSubmit(
+                this.props.data.id,
+                this.state.title,
+                this.state.desc
+              );
             }.bind(this)}
           >
+            <input
+              type="hidden"
+              name="id"
+              value={this.props.data.id}
+            />
             <p>
               <input
                 type="text"

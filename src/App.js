@@ -47,17 +47,32 @@ class App extends Component {
       _article = <ReadContent title={_title} desc={_desc} />;
     }else if(this.state.mode === 'create'){
       _article = <CreateContent onSubmit={function(_title, _desc){
-        var maxId = Math.max(...this.state.contents.map(function(c){
+        var _contents = Array.from(this.state.contents);
+        var maxId = Math.max(..._contents.map(function(c){
           return c.id;
         }))+1;
         this.setState({
-          contents: this.state.contents.concat({id: maxId, title: _title, desc: _desc})
+          contents: _contents.concat({id: maxId, title: _title, desc: _desc}),
+          mode: 'read',
+          selected_content_id: maxId
         });
       }.bind(this)}/>
     }else if(this.state.mode === 'update'){
       var _content = this.getReadContent();
       if(_content){
-        _article = <UpdateContent data={_content}/>
+        _article = <UpdateContent
+                      data={_content}
+                      onSubmit={function(_id, _title, _desc){
+                        var _contents = Array.from(this.state.contents);
+                        _contents.forEach(function(c, i){
+                          if(c.id === _id){
+                            _contents[i] = {id: _id, title: _title, desc: _desc};
+                          }
+                        });
+                        
+                        this.setState({contents: _contents, mode: 'read'});
+                      }.bind(this)}
+                   />
       }
     }
 
@@ -83,9 +98,25 @@ class App extends Component {
           });
         }.bind(this)}/>
         <Control onChangeMode={function(mode){
-          this.setState({
-            mode: mode
-          });
+          if(mode==='delete'){
+            if(window.confirm('Do you want to delete item?')){
+              var _content = Array.from(this.state.contents);
+              var i = 0;
+              while(i<_content.length){
+                if(_content[i].id === this.state.selected_content_id){
+                  _content.splice(i,1);
+                  break;
+                }
+                i++;
+              }
+              this.setState({mode: 'welcome', contents: _content});
+              alert('deleted!');
+            }
+          }else{
+            this.setState({
+              mode: mode
+            });
+          }
         }.bind(this)}/>
         {this.getContent()}
       </div>
