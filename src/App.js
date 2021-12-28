@@ -5,6 +5,7 @@ import TOC from './components/TOC';
 import Control from './components/Control';
 import ReadContent from './components/ReadContent';
 import CreateContent from './components/CreateContent';
+import UpdateContent from './components/UpdateContent';
 
 class App extends Component {
   //render() 보다 먼저 실행되면서 render()에서 사용할 변수를 미리 정의하는 부분임. 생성자 함수니까
@@ -25,20 +26,24 @@ class App extends Component {
     }
   }
 
-  render(){
-    console.log("App render");
+  getReadContent(){
+    return this.state.contents.filter(function(c){
+      return c.id === this.state.selected_content_id;
+    }.bind(this))[0];
+  }
+
+  getContent(){
     var _title, _desc, _article = null;
     if(this.state.mode === 'welcome'){
       _title = this.state.welcome.title;
       _desc = this.state.welcome.desc;
       _article = <ReadContent title={_title} desc={_desc} />;
     }else if(this.state.mode === 'read'){
-      this.state.contents.forEach(function(c){
-        if(c.id===this.state.selected_content_id){
-          _title = c.title;
-          _desc = c.desc;
-        }
-      }.bind(this));
+      var _content = this.getReadContent();
+      if(_content){
+        _title = _content.title;
+        _desc = _content.desc;
+      }
       _article = <ReadContent title={_title} desc={_desc} />;
     }else if(this.state.mode === 'create'){
       _article = <CreateContent onSubmit={function(_title, _desc){
@@ -49,7 +54,18 @@ class App extends Component {
           contents: this.state.contents.concat({id: maxId, title: _title, desc: _desc})
         });
       }.bind(this)}/>
+    }else if(this.state.mode === 'update'){
+      var _content = this.getReadContent();
+      if(_content){
+        _article = <UpdateContent data={_content}/>
+      }
     }
+
+    return _article;
+  }
+
+  render(){
+    console.log("App render");
 
     return (
       <div className="App">
@@ -71,7 +87,7 @@ class App extends Component {
             mode: mode
           });
         }.bind(this)}/>
-        {_article}
+        {this.getContent()}
       </div>
     );
   }
